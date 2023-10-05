@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #FFF5E9 ;
+      height: 500px;
+    }
+    #logo {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    #logo img {
+      width: 100px; /* Adjust the logo size as needed */
+    }
+    #csvInput {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #ccc;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+    #columnSelection {
+      text-align: leftalign;
+    }
+    .checkbox-label {
+      display: inline-block;
+      margin-right: 10px;
+    }
+    #importButton {
+      width: 100%;
+      padding: 10px;
+      background-color: #6D574D;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #importButton:hover {
+      background-color: #5C3F32;
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <div id="logo">
+      <img src="https://img.freepik.com/premium-vector/yellow-cup-coffee-with-black-coffee-top_313877-12133.jpg" alt="Logo">
+    </div>
+    <input type="file" id="csvInput" accept=".csv" onchange="handleFile(event)">
+    <div id="columnSelection" style="display: none;">
+      <label>Select columns to import:</label>
+      <div id="checkboxes"></div> <!-- Container for checkboxes -->
+      <br><br>
+      <button id="importButton" onclick="importData()">Import to Google Sheets</button>
+    </div>
+  </div>
+  <script>
+    var csvData;
+
+    function handleFile(event) {
+      var file = event.target.files[0];
+      var reader = new FileReader();
+
+      reader.onload = function(e) {
+        csvData = e.target.result;
+        document.getElementById('columnSelection').style.display = 'block';
+        createCheckboxes(e.target.result); // Create checkboxes based on CSV headers
+      };
+
+      reader.readAsText(file);
+    }
+
+    function createCheckboxes(data) {
+      var lines = data.split("\n");
+      var headers = lines[0].split(","); // Assuming the first row contains headers
+      var checkboxesDiv = document.getElementById('checkboxes');
+
+      for (var i = 0; i < headers.length; i++) {
+        var checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.name = 'column';
+        checkbox.value = i; // Store column index as the value
+        checkbox.id = 'column' + i; // Unique ID for each checkbox
+
+        var label = document.createElement('label');
+        label.htmlFor = 'column' + i;
+        label.appendChild(document.createTextNode(headers[i]));
+
+        checkboxesDiv.appendChild(checkbox);
+        checkboxesDiv.appendChild(label);
+        checkboxesDiv.appendChild(document.createElement('br'));
+      }
+    }
+
+    function importData() {
+      var selectedColumns = [];
+      var checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+
+      checkboxes.forEach(function(checkbox) {
+        selectedColumns.push(parseInt(checkbox.value));
+      });
+
+      google.script.run.importCSVData(csvData, selectedColumns);
+      google.script.host.close();
+    }
+  </script>
+</body>
+</html>
